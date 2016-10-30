@@ -1,3 +1,5 @@
+var globalPlayer = document.createElement('audio'),
+    playingItem;
 new Promise(function(resolve) {
     if (document.readyState === 'complete') {
         resolve();
@@ -31,6 +33,40 @@ new Promise(function(resolve) {
             });
     })
 }).then(function () {
+
+        function onPlay() {
+            playingItem.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-pause';
+        }
+
+        function onPause() {
+            playingItem.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-play';
+        }
+
+        globalPlayer.addEventListener('play', onPlay);
+        globalPlayer.addEventListener('pause', onPause);
+
+
+        results.addEventListener('click', function (e) {
+           if(e.target.getAttribute('data-role') === 'playback') {
+               var currentItem = e.target.closest('li');
+               if(currentItem === playingItem) {
+                   if(globalPlayer.paused){
+                       globalPlayer.play();
+                   } else {
+                       globalPlayer.pause();
+                   }
+               } else {
+                   if(!globalPlayer.paused) {
+                       onPause();
+                   }
+
+                   playingItem = currentItem;
+
+                   globalPlayer.src = e.target.getAttribute('data-src');
+                   globalPlayer.play();
+               }
+           }
+        });
         return new Promise(function(resolve, reject) {
             VK.api('audio.get',{}, function (response) {
                 if(response.error){
