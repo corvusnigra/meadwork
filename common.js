@@ -33,7 +33,14 @@ new Promise(function(resolve) {
             });
     })
 }).then(function () {
+        function onProgress(e) {
+            var progressBar = playingItem.querySelector('[data-role = progressbar]');
+            var duration = e.target.duration;
+            var currentTime = e.target.currentTime;
+            var progress = parseInt(100/duration * currentTime);
 
+            progressBar.style.width = progress + '%';
+        }
         function onPlay() {
             playingItem.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-pause';
         }
@@ -44,6 +51,7 @@ new Promise(function(resolve) {
 
         globalPlayer.addEventListener('play', onPlay);
         globalPlayer.addEventListener('pause', onPause);
+        globalPlayer.addEventListener('timeupdate', onProgress);
 
 
         results.addEventListener('click', function (e) {
