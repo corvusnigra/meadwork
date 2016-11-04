@@ -33,6 +33,46 @@ new Promise(function(resolve) {
             });
     })
 }).then(function () {
+
+        var prevSongButton = document.querySelector('#prevSongButton');
+        var mainSongButton = document.querySelector('#mainSongButton');
+        var nextSongButton = document.querySelector('#nextSongButton');
+
+        results.addEventListener('click', function (e) {
+            if(e.target.classList.contains('progress')) {
+                var currentProgress = e.target.closest('li');
+                var progress = e.offsetX;
+                var widthProgressBar = e.target.clientWidth;
+                var duration = parseInt(100/widthProgressBar * progress);
+                var songTime = globalPlayer.duration;
+                var audioWidth = songTime * duration/100;
+                if(currentProgress === playingItem){
+                    globalPlayer.currentTime = audioWidth;
+                }
+
+            }
+            if(e.target.getAttribute('data-role') === 'playback') {
+                var currentItem = e.target.closest('li');
+                if(currentItem === playingItem) {
+                    if(globalPlayer.paused){
+                        globalPlayer.play();
+                    } else {
+                        globalPlayer.pause();
+                    }
+                } else {
+                    if(!globalPlayer.paused) {
+                        onPause();
+                    }
+
+                    playingItem = currentItem;
+
+                    globalPlayer.src = e.target.getAttribute('data-src');
+                    globalPlayer.play();
+
+                }
+            }
+        });
+
         function onProgress(e) {
             var progressBar = playingItem.querySelector('[data-role = progressbar]');
             var duration = e.target.duration;
@@ -43,38 +83,55 @@ new Promise(function(resolve) {
         }
         function onPlay() {
             playingItem.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-pause';
+            mainSongButton.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-pause';
         }
 
         function onPause() {
             playingItem.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-play';
+            mainSongButton.querySelector('[data-role = playback]').className = 'glyphicon glyphicon-play';
         }
+
+
+        function toSong(to) {
+            if(playingItem){
+
+                    var nextPlayer = to === 'next' ? playingItem.nextElementSibling : playingItem.previousElementSibling;
+
+
+                if(nextPlayer) {
+
+                    nextPlayer.querySelector('[data-role=playback]').click();
+
+                }
+            }
+        };
+
+    
+        prevSongButton.addEventListener('click', function () {
+            toSong('prev')
+        });
+        mainSongButton.addEventListener('click', function () {
+
+                if (globalPlayer.paused) {
+                    globalPlayer.play();
+                } else {
+                    globalPlayer.pause();
+                }
+            
+        });
+        nextSongButton.addEventListener('click', function () {
+            toSong('next')
+        });
+
+
 
         globalPlayer.addEventListener('play', onPlay);
         globalPlayer.addEventListener('pause', onPause);
         globalPlayer.addEventListener('timeupdate', onProgress);
 
 
-        results.addEventListener('click', function (e) {
-           if(e.target.getAttribute('data-role') === 'playback') {
-               var currentItem = e.target.closest('li');
-               if(currentItem === playingItem) {
-                   if(globalPlayer.paused){
-                       globalPlayer.play();
-                   } else {
-                       globalPlayer.pause();
-                   }
-               } else {
-                   if(!globalPlayer.paused) {
-                       onPause();
-                   }
 
-                   playingItem = currentItem;
 
-                   globalPlayer.src = e.target.getAttribute('data-src');
-                   globalPlayer.play();
-               }
-           }
-        });
         return new Promise(function(resolve, reject) {
             VK.api('audio.get',{}, function (response) {
                 if(response.error){
